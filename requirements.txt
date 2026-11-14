@@ -1,0 +1,9 @@
+pypdf
+sentence-transformers
+faiss-cpu
+fastapi
+uvicorn
+gradio
+requests
+pandas
+matplotlib
