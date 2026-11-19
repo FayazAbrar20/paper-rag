@@ -1,6 +1,8 @@
 # PaperRAG
 
-Question answering over my own research papers. A question is embedded, the most relevant page chunks are retrieved from a FAISS index, and an open-source LLM (Llama 3.2 3B, served locally by Ollama) answers **only from those chunks**, citing paper and page. If the papers don't contain the answer, it says so.
+[![tests](https://github.com/FayazAbrar20/paper-rag/actions/workflows/tests.yml/badge.svg)](https://github.com/FayazAbrar20/paper-rag/actions/workflows/tests.yml)
+
+Question answering over research papers I co-authored. A question is embedded, the most relevant page chunks are retrieved from a FAISS index, and an open-source LLM (Llama 3.2 3B, served locally by Ollama) answers **only from those chunks**, citing paper and page. If the papers don't contain the answer, it says so.
 
 Everything runs locally on a CPU-only laptop: no API keys, no cloud, no cost per question.
 
@@ -128,6 +130,22 @@ Re-run the benchmark (retrieval takes minutes; answers take one LLM call per que
 
 To use your own PDFs, put them in `data/papers/` and rebuild the index. Paper names come from the `PAPERS` mapping in `src/ingest.py` (otherwise the file name is used).
 
+## Tests
+
+25 unit tests cover:
+- citation parsing: only `[S1]`–`[S4]` count, never the papers' own `[5]`-style references; duplicate pages are merged; a refusal has no sources;
+- refusal detection and the prompt's source labels;
+- page chunking: size, overlap, the last chunk ending at the page end, no text skipped;
+- the API: request validation, the response shape, and a 503 when Ollama is down;
+- the chat reply format.
+
+The tests use a fake tokenizer and a stubbed LLM, so they need no model downloads and no Ollama. GitHub Actions runs them on every push.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
 ## Project structure
 
 ```
@@ -139,6 +157,7 @@ src/api.py          FastAPI app: POST /ask, GET /health, chat UI mounted at /ui
 src/ui.py           Gradio chat
 eval/questions.json 20 hand-labelled benchmark questions
 eval/run_eval.py    retrieval and answer benchmark, writes eval/results/
+tests/              unit tests (pytest), run by .github/workflows/tests.yml
 ```
 
 ## What I learned
