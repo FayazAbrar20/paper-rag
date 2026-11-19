@@ -62,8 +62,8 @@ def build(model_name, size, overlap, out_dir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=MODELS, default="bge-small")
-    parser.add_argument("--chunk-size", type=int, default=500)
-    parser.add_argument("--overlap", type=int, default=100)
+    parser.add_argument("--chunk-size", type=int, default=300)
+    parser.add_argument("--overlap", type=int, default=60)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     out_dir = args.out or ROOT / "index" / f"{args.model}_{args.chunk_size}"

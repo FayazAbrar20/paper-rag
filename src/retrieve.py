@@ -7,7 +7,7 @@ import faiss
 from sentence_transformers import SentenceTransformer
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_INDEX = ROOT / "index" / "bge-small_500"
+DEFAULT_INDEX = ROOT / "index" / "bge-small_300"
 QUERY_PREFIX = {"bge-small": "Represent this sentence for searching relevant passages: "}
 
 
