@@ -1,0 +1,7 @@
+config,model,chunk_size,hit1,hit4,mrr,table_hit4,chunks,truncated
+bge-small_300,bge-small,300,0.529,0.882,0.681,0.5,109,0.0
+bge-small_500,bge-small,500,0.471,0.882,0.618,0.5,66,0.0
+bge-small_800,bge-small,800,0.471,0.824,0.618,0.5,50,0.46
+minilm_300,minilm,300,0.471,0.765,0.569,0.5,109,0.734
+minilm_500,minilm,500,0.412,0.765,0.569,0.5,66,0.848
+minilm_800,minilm,800,0.412,0.765,0.554,0.5,50,0.88
