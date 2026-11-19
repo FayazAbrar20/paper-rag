@@ -14,23 +14,22 @@ The three papers (in [data/papers/](data/papers/)):
 ## How it works
 
 ```mermaid
-flowchart LR
-    subgraph Indexing["Indexing (src/ingest.py)"]
-        A[PDF papers] --> B["Text per page (pypdf)"]
-        B --> C["300-token chunks, 60 overlap"]
-        C --> D["Embeddings (bge-small-en-v1.5)"]
-        D --> E[(FAISS index + chunk metadata)]
+flowchart TB
+    subgraph Indexing["Indexing: src/ingest.py"]
+        direction LR
+        A[PDF papers] --> B["Text per page<br/>(pypdf)"] --> C["300-token chunks<br/>60 overlap"] --> D["Embeddings<br/>(bge-small)"] --> E[("FAISS index<br/>+ metadata")]
     end
-    subgraph Answering["Answering (src/retrieve.py, src/generate.py)"]
-        Q[Question] --> F["Embed question"]
-        F --> G["Top-4 cosine search"]
-        E --> G
-        G --> H["Prompt with sources S1-S4"]
-        H --> I["Llama 3.2 3B via Ollama"]
-        I --> J["Answer + cited paper and page"]
+    subgraph Answering["Answering: src/retrieve.py, src/generate.py"]
+        direction LR
+        Q[Question] --> F["Embed<br/>question"] --> G["Top-4<br/>cosine search"] --> H["Prompt with<br/>sources S1-S4"] --> I["Llama 3.2 3B<br/>via Ollama"] --> J["Answer + cited<br/>paper and page"]
     end
-    J --> K["FastAPI POST /ask"]
-    J --> L["Gradio chat at /ui"]
+    subgraph Serving["Serving: src/api.py, src/ui.py"]
+        direction LR
+        K["FastAPI<br/>POST /ask"]
+        L["Gradio chat<br/>/ui"]
+    end
+    Indexing -- "index loaded at startup" --> Answering
+    Answering --> Serving
 ```
 
 Design decisions:
