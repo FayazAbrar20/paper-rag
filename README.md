@@ -10,8 +10,6 @@ Question answering over research papers I co-authored. A question is embedded, t
 
 Everything runs locally on a CPU-only laptop: no API keys, no cloud, no cost per question.
 
-![PaperRAG chat answering a question with a cited source](docs/ui.png)
-
 The three papers (in [data/papers/](data/papers/)):
 1. *Sarcasm Detection in Social Media Text* (BoW/TF-IDF + Naive Bayes, Logistic Regression, SVM)
 2. *Bitcoin Price Direction Prediction* (XGBoost, LSTM, FinBERT, SHAP)
