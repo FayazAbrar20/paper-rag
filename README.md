@@ -4,6 +4,10 @@
 
 Question answering over research papers I co-authored. A question is embedded, the most relevant page chunks are retrieved from a FAISS index, and an open-source LLM (Llama 3.2 3B, served locally by Ollama) answers **only from those chunks**, citing paper and page. If the papers don't contain the answer, it says so.
 
+<p align="center">
+  <img src="docs/ui.png" alt="PaperRAG chat answering a question with a page citation" width="100%"/>
+</p>
+
 Everything runs locally on a CPU-only laptop: no API keys, no cloud, no cost per question.
 
 ![PaperRAG chat answering a question with a cited source](docs/demo.jpg)
