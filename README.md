@@ -10,7 +10,7 @@ Question answering over research papers I co-authored. A question is embedded, t
 
 Everything runs locally on a CPU-only laptop: no API keys, no cloud, no cost per question.
 
-![PaperRAG chat answering a question with a cited source](docs/demo.jpg)
+![PaperRAG chat answering a question with a cited source](docs/ui.png)
 
 The three papers (in [data/papers/](data/papers/)):
 1. *Sarcasm Detection in Social Media Text* (BoW/TF-IDF + Naive Bayes, Logistic Regression, SVM)
@@ -27,7 +27,7 @@ flowchart TB
     end
     subgraph Answering["Answering: src/retrieve.py, src/generate.py"]
         direction LR
-        Q[Question] --> F["Embed<br/>question"] --> G["Top-4<br/>cosine search"] --> H["Prompt with<br/>sources S1-S4"] --> I["Llama 3.2 3B<br/>via Ollama"] --> J["Answer + cited<br/>paper and page"]
+        Q[Question] --> F["Embed<br/>question"] --> G["Hybrid search<br/>vectors + BM25, top 4"] --> H["Prompt with<br/>sources S1-S4"] --> I["Llama 3.2 3B<br/>via Ollama"] --> J["Answer + cited<br/>paper and page"]
     end
     subgraph Serving["Serving: src/api.py, src/ui.py"]
         direction LR
@@ -45,6 +45,7 @@ Design decisions:
 - **The prompt defines an exact refusal sentence**, so "refused when it should" can be measured.
 - **Temperature 0 and an explicit 4096-token context window**: answers are reproducible for the benchmark, and Ollama never silently cuts off part of the prompt.
 - **API and UI run in one process**: the Gradio chat is mounted inside the FastAPI app, so the models are loaded once. On an 8 GB laptop a second process would duplicate about 1 GB of model memory.
+- **Hybrid search: vectors and BM25 keyword search, merged with Reciprocal Rank Fusion.** Each method ranks its top 20 chunks, and each chunk scores 1/(60 + rank) in every list it appears in. Vector search misses exact terms like "split" and "recall"; BM25 catches them. The benchmark below chose it: answer accuracy rose from 0.65 to 0.82.
 - **The 300-token chunk size was chosen by the benchmark below**: better ranking than 500 tokens, and about a third faster per answer because the prompt is smaller.
 
 ## Benchmark
@@ -67,6 +68,17 @@ Six retrieval setups were compared: 2 embedding models × 3 chunk sizes (overlap
 | all-MiniLM-L6-v2 | 500 | 0.41 | 0.77 | 0.57 | 85% |
 | all-MiniLM-L6-v2 | 800 | 0.41 | 0.77 | 0.55 | 88% |
 
+Vector search compared with BM25 keyword search and hybrid (both merged with Reciprocal Rank Fusion), on bge-small indexes:
+
+| Chunk size | Search | Hit@1 | Hit@4 | MRR |
+|---|---|---|---|---|
+| 300 | vector | 0.53 | 0.88 | 0.68 |
+| 300 | BM25 | 0.65 | 0.82 | 0.73 |
+| **300** | **hybrid** | **0.65** | **0.88** | **0.76** |
+| 500 | vector | 0.47 | 0.88 | 0.62 |
+| 500 | BM25 | 0.71 | 0.82 | 0.76 |
+| 500 | hybrid | 0.71 | 0.88 | 0.78 |
+
 ![Retrieval quality by embedding model and chunk size](eval/results/retrieval.png)
 
 ### Answers (Llama 3.2 3B)
@@ -75,6 +87,9 @@ Six retrieval setups were compared: 2 embedding models × 3 chunk sizes (overlap
 |---|---|---|---|---|---|
 | bge-small, 300 | 0.65 (11/17) | 0.82 | 3/3 | 0 | 92 s |
 | bge-small, 500 | 0.71 (12/17) | 0.76 | 3/3 | 1 | 139 s |
+| **bge-small, 300, hybrid** | **0.82 (14/17)** | 0.82 | 3/3 | 1 | 190 s* |
+
+\* BM25 adds only milliseconds. Ollama ran short of memory during this run and crashed once, so its answers were slower than in the earlier runs.
 
 Times are on a CPU-only laptop (Intel i5-1135G7, 8 GB RAM). Per-question results are in [eval/results/](eval/results/).
 
@@ -86,6 +101,7 @@ Times are on a CPU-only laptop (Intel i5-1135G7, 8 GB RAM). Per-question results
   - *Retrieval miss:* the most dangerous case. For the LSTM recall question the right table was not retrieved, and the model produced a confident, cited, wrong number. With the 500 setup, a different miss was handled correctly with "I don't know".
   - *Table misreading:* tables are extracted as long rows of numbers, and the model picked values from neighbouring columns.
   - *Reasoning errors:* asked for the **worst** classical model, it named the best one.
+- **Hybrid search fixed exact-term questions.** It answered 3 more questions correctly than vector search (14/17 vs 11/17): it fixed the train/validation/test *split* question (B5) and three Emotion questions, and lost one (E5). BM25 alone ranks better at position 1 but finds fewer correct pages in the top 4; hybrid keeps the best of both.
 - **Refusal works.** All 3 refusal questions were answered "I don't know", including the near-miss trap.
 
 ### Limitations
@@ -136,9 +152,10 @@ To use your own PDFs, put them in `data/papers/` and rebuild the index. Paper na
 
 ## Tests
 
-25 unit tests cover:
+33 unit tests cover:
 - citation parsing: only `[S1]`–`[S4]` count, never the papers' own `[5]`-style references; duplicate pages are merged; a refusal has no sources;
 - refusal detection and the prompt's source labels;
+- hybrid search: tokenizing, Reciprocal Rank Fusion scores, tie-breaking, and rejecting an unknown search mode;
 - page chunking: size, overlap, the last chunk ending at the page end, no text skipped;
 - the API: request validation, the response shape, and a 503 when Ollama is down;
 - the chat reply format.
@@ -155,7 +172,7 @@ The tests use a fake tokenizer and a stubbed LLM, so they need no model download
 ```
 data/papers/        the three PDFs
 src/ingest.py       PDF → page text → token chunks → embeddings → FAISS index
-src/retrieve.py     top-k search (loads the index and model once)
+src/retrieve.py     hybrid search: vectors + BM25, Reciprocal Rank Fusion
 src/generate.py     prompt + Ollama call, returns answer and cited sources
 src/api.py          FastAPI app: POST /ask, GET /health, chat UI mounted at /ui
 src/ui.py           Gradio chat
@@ -173,7 +190,6 @@ tests/              unit tests (pytest), run by .github/workflows/tests.yml
 
 ## Next steps
 
-- Hybrid search (BM25 keyword matching + vectors) for exact terms like "recall" and "split", which the vector search missed
 - Table-aware PDF extraction, or keeping each table as one chunk with its caption
 - A cross-encoder re-ranker on the top 10 results
 - Compare `llama3.2:3b` with `llama3.2:1b` for speed against accuracy

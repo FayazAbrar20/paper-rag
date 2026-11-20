@@ -15,10 +15,11 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from generate import DEFAULT_LLM, answer, is_refusal
 from ingest import MODELS, build
-from retrieve import retrieve
+from retrieve import MODES, retrieve
 
 RESULTS = ROOT / "eval" / "results"
 CHUNK_SIZES = [300, 500, 800]
+SEARCH_CONFIGS = ["bge-small_300", "bge-small_500"]
 K = 4
 COLORS = {"bge-small": "#2a78d6", "minilm": "#eb6834"}
 
@@ -100,6 +101,36 @@ def plot_retrieval(summary):
     fig.savefig(RESULTS / "retrieval.png", dpi=160, facecolor=fig.get_facecolor())
 
 
+def eval_search(questions):
+    rows = []
+    answerable = [q for q in questions if q["type"] != "refusal"]
+    for config in SEARCH_CONFIGS:
+        path = index_dir(config)
+        for mode in MODES:
+            for q in answerable:
+                hits = retrieve(q["question"], K, path, mode)
+                rank = next((r for r, h in enumerate(hits, start=1) if is_relevant(h, q)), None)
+                rows.append({
+                    "config": config, "mode": mode, "id": q["id"], "type": q["type"], "rank": rank,
+                    "retrieved": "; ".join(f"{h['paper'].split()[0]} p{h['page']}" for h in hits),
+                })
+    df = pd.DataFrame(rows)
+    df["hit@1"] = df["rank"] == 1
+    df["hit@4"] = df["rank"].notna()
+    df["rr"] = (1 / df["rank"]).fillna(0)
+    df.to_csv(RESULTS / "search.csv", index=False)
+    summary = df.groupby(["config", "mode"], sort=False).agg(hit1=("hit@1", "mean"), hit4=("hit@4", "mean"), mrr=("rr", "mean")).reset_index()
+    table_hit4 = df[df["type"] == "table"].groupby(["config", "mode"], sort=False)["hit@4"].mean().rename("table_hit4").reset_index()
+    summary = summary.merge(table_hit4, on=["config", "mode"])
+    summary.round(3).to_csv(RESULTS / "search_summary.csv", index=False)
+    return summary
+
+
+def split_config(config):
+    base, _, mode = config.partition("+")
+    return base, mode or "vector"
+
+
 def contains_all(text, groups):
     text = text.lower()
     return all(any(alt in text for alt in group.split("|")) for group in groups)
@@ -110,12 +141,13 @@ def eval_answers(questions, configs, llm):
     done = pd.read_csv(out) if out.exists() else pd.DataFrame(columns=["config", "llm", "id"])
     finished = set(zip(done["config"], done["llm"], done["id"]))
     for config in configs:
-        path = index_dir(config)
+        base, mode = split_config(config)
+        path = index_dir(base)
         for q in questions:
             if (config, llm, q["id"]) in finished:
                 continue
             start = time.perf_counter()
-            result = answer(q["question"], K, path, llm)
+            result = answer(q["question"], K, path, llm, mode)
             refused = is_refusal(result["answer"])
             row = {
                 "config": config, "llm": llm, "id": q["id"], "type": q["type"],
@@ -155,7 +187,7 @@ def summarize_answers(out, questions):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("stage", choices=["retrieval", "answers"])
+    parser.add_argument("stage", choices=["retrieval", "search", "answers"])
     parser.add_argument("--configs", nargs="+", default=["bge-small_500"])
     parser.add_argument("--llm", default=DEFAULT_LLM)
     args = parser.parse_args()
@@ -163,6 +195,8 @@ def main():
     questions = load_questions()
     if args.stage == "retrieval":
         print(eval_retrieval(questions).round(3).to_string(index=False))
+    elif args.stage == "search":
+        print(eval_search(questions).round(3).to_string(index=False))
     else:
         eval_answers(questions, args.configs, args.llm)
 

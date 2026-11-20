@@ -39,3 +39,23 @@ bge-small_500,llama3.2:3b,E6,text,False,False,True,169.5,"The Support Vector Mac
 bge-small_500,llama3.2:3b,R1,refusal,True,True,False,124.1,I don't know based on the papers.,
 bge-small_500,llama3.2:3b,R2,refusal,True,True,False,28.1,I don't know based on the papers.,
 bge-small_500,llama3.2:3b,R3,refusal,True,True,False,143.0,I don't know based on the papers.,
+bge-small_300+hybrid,llama3.2:3b,S1,text,True,False,True,154.1,"The best F1-score in the sarcasm paper was 0.7204, achieved by the BoW combined with Logistic Regression configuration. [S1]",Sarcasm p5
+bge-small_300+hybrid,llama3.2:3b,S2,text,True,False,True,130.5,"The configuration with the highest accuracy was TF-IDF combined with SVM, achieving an accuracy of 0.7036. [S2]",Sarcasm p1
+bge-small_300+hybrid,llama3.2:3b,S3,text,True,False,True,167.0,The Sarcasm Corpus V2 dataset was used for sarcasm detection. [S3],Sarcasm p1
+bge-small_300+hybrid,llama3.2:3b,S4,text,True,False,True,160.5,341 false positives. [S1] [S2],Sarcasm p3
+bge-small_300+hybrid,llama3.2:3b,S5,text,True,False,True,255.1,"Naive Bayes produced identical results under both representations because its binarized presence/absence encoding discards the numeric weighting differences between BoW and TF-IDF, making the two representations equivalent for the Naive Bayes classifier [S1][S2][S3].",Sarcasm p3; Sarcasm p4; Sarcasm p1
+bge-small_300+hybrid,llama3.2:3b,B1,text,False,False,True,222.6,"The XGBoost model performed best, achieving a cumulative return that broadly tracked the market and a positive risk-adjusted excess return relative to a random signal baseline, with a Sharpe ratio indicating this. However, the exact accuracy of the XGBoost model is not specified in the provided sources.",Bitcoin p7; Bitcoin p5; Bitcoin p1; Bitcoin p2
+bge-small_300+hybrid,llama3.2:3b,B2,text,True,False,True,202.5,The tuned XGBoost model achieved a Matthews Correlation Coefficient (MCC) of 0.0765. [S2],Bitcoin p1
+bge-small_300+hybrid,llama3.2:3b,B3,text,True,False,False,246.8,Sentiment features contributed approximately 18% of total model attribution. [S2],Bitcoin p1
+bge-small_300+hybrid,llama3.2:3b,B4,text,True,False,True,227.6,"The binary prediction target was defined as a 1% target threshold, which is arbitrary and could be improved upon by using a multi-class formulation distinguishing large up, small up, flat, small down, and large down moves. [S1]  [S1]",Bitcoin p7
+bge-small_300+hybrid,llama3.2:3b,B5,text,True,False,True,287.4,"A chronological 70/10/20 train/validation/test split was enforced, with the first 70% of observations forming the training set, the next 10% the validation set, and the final 20% the test set. [S2]",Bitcoin p4
+bge-small_300+hybrid,llama3.2:3b,B6,table,False,False,False,286.7,"The LSTM model achieved competitive Recall for the minority class, specifically approximately 0.61, after applying class weighting and a safety fallback threshold to prevent prediction collapse [S2].",Bitcoin p7
+bge-small_300+hybrid,llama3.2:3b,E1,table,True,False,True,294.9,BERT achieved an accuracy of 0.942 on the CARER dataset. [S3],Emotion p6
+bge-small_300+hybrid,llama3.2:3b,E2,text,True,False,True,89.2,"The ensemble model achieved the best F1 on DailyDialog, with a score of 0.866, which is higher than the scores of the individual models BERT (0.865) and DistilBERT (0.865) [S2][S4].",Emotion p6
+bge-small_300+hybrid,llama3.2:3b,E3,text,True,False,True,89.2,"DistilBERT has roughly half the parameters of BERT, with approximately 66M parameters compared to BERT's 110M parameters. [S1][S2]",Emotion p5
+bge-small_300+hybrid,llama3.2:3b,E4,text,True,False,True,118.5,"The hyperparameters that were tuned in the BERT grid search were learning rate (0.00002, 0.00003), batch size (16, 32), and weight decay (0.01, 0.1) [S1].",Emotion p4
+bge-small_300+hybrid,llama3.2:3b,E5,text,False,True,False,148.1,I don't know based on the papers.,
+bge-small_300+hybrid,llama3.2:3b,E6,text,True,False,True,180.4,"The Naive Bayes model performed worst on emotion detection, with a F1 score of 0.771 on the CARER dataset, which is 17 points lower than the best result of the SVM model (F1 = 0.901) [S2].",Emotion p7
+bge-small_300+hybrid,llama3.2:3b,R1,refusal,True,True,False,199.7,I don't know based on the papers.,
+bge-small_300+hybrid,llama3.2:3b,R2,refusal,True,True,False,121.2,I don't know based on the papers.,
+bge-small_300+hybrid,llama3.2:3b,R3,refusal,True,True,False,221.6,I don't know based on the papers.,

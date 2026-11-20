@@ -4,7 +4,7 @@ import time
 
 import requests
 
-from retrieve import DEFAULT_INDEX, retrieve
+from retrieve import DEFAULT_INDEX, DEFAULT_MODE, retrieve
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 DEFAULT_LLM = "llama3.2:3b"
@@ -47,8 +47,8 @@ def cited_sources(text, hits):
     return sources
 
 
-def answer(question, k=4, index_dir=DEFAULT_INDEX, llm=DEFAULT_LLM):
-    hits = retrieve(question, k, index_dir)
+def answer(question, k=4, index_dir=DEFAULT_INDEX, llm=DEFAULT_LLM, mode=DEFAULT_MODE):
+    hits = retrieve(question, k, index_dir, mode)
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": build_prompt(question, hits)}]
     text = call_ollama(messages, llm)
     return {"answer": text, "sources": cited_sources(text, hits)}

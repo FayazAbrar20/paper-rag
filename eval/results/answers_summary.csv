@@ -1,3 +1,4 @@
 config,llm,answer_accuracy,citation_accuracy,false_refusals,refusal_accuracy,mean_seconds
 bge-small_300,llama3.2:3b,0.647,0.824,0,1.0,91.965
+bge-small_300+hybrid,llama3.2:3b,0.824,0.824,1,1.0,190.18
 bge-small_500,llama3.2:3b,0.706,0.765,1,1.0,139.195

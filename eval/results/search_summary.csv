@@ -1,0 +1,7 @@
+config,mode,hit1,hit4,mrr,table_hit4
+bge-small_300,vector,0.529,0.882,0.681,0.5
+bge-small_300,bm25,0.647,0.824,0.725,0.5
+bge-small_300,hybrid,0.647,0.882,0.755,0.5
+bge-small_500,vector,0.471,0.882,0.618,0.5
+bge-small_500,bm25,0.706,0.824,0.755,0.5
+bge-small_500,hybrid,0.706,0.882,0.779,0.5
